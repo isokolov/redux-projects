@@ -1,62 +1,124 @@
+import {
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  Typography,
+} from "@material-ui/core";
+import {
+  AddShoppingCart,
+  Favorite,
+  FavoriteBorder,
+  RemoveShoppingCart,
+} from "@material-ui/icons";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import store from "../store";
+import { Dispatch } from "redux";
 
-export default function Home() {
+function Home() {
   const [movieTitle, setMovieTitle] = useState("");
-  const dispatch = useDispatch();
-  const movies = useSelector((state) => state.movies);
-  const basket = useSelector((state) => state.basket);
-  const likedMovies = useSelector((state) => state.likedMovies);
+  const movies = useSelector(
+    (state: {
+      movies: { title: string; liked: boolean; inBasket: boolean }[];
+    }) => state.movies
+  );
+  const basket = useSelector((state: { basket: string[] }) => state.basket);
+  const likedMovies = useSelector(
+    (state: { likedMovies: string[] }) => state.likedMovies
+  );
+  const dispatch: Dispatch<any> = useDispatch();
+
   function handleAddMovie() {
-    dispatch({ type: "ADD_MOVIE", payload: movieTitle });
+    const newMovie = {
+      title: movieTitle
+        .toLowerCase()
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" "),
+      inBasket: false,
+      liked: false,
+    };
+    dispatch({ type: "ADD_MOVIE", payload: newMovie });
+    setMovieTitle("");
   }
 
-  function handleLikeMovie() {
-    dispatch({ type: "LIKED_MOVIE", payload: movieTitle });
+  function handleLikeMovie(movieTitle: string) {
+    dispatch({ type: "LIKE_MOVIE", payload: movieTitle });
   }
 
-  function handleAddBasket() {
+  function handleAddToBasket(movieTitle: string) {
     dispatch({ type: "ADD_TO_BASKET", payload: movieTitle });
   }
 
-  console.log(store.getState());
+  function handleRemoveFromBasket(movieTitle: string) {
+    dispatch({ type: "ADD_TO_BASKET", payload: movieTitle });
+  }
+
   return (
-    <>
-      <div>
-        <h1>My Movie List</h1>
-      </div>
-      <div>
+    <div className="container">
+      <h1 className="title">My Movie List</h1>
+      <div className="add-movie">
         <input
           type="text"
           placeholder="Enter a movie title"
           value={movieTitle}
           onChange={(e) => setMovieTitle(e.target.value)}
+          className="input"
         />
-        <button onClick={handleAddMovie}>Add Movie</button>
+        <button onClick={handleAddMovie} className="button">
+          Add Movie
+        </button>
       </div>
-      <h2>Movies</h2>
-      <ul>
+      <h2 className="subtitle">My Movies</h2>
+      <div className="movie-list">
         {movies.map((movie, index) => (
-          <li key={index}>
-            {movie}
-            <button onClick={handleLikeMovie}>Like</button>
-            <button onClick={handleAddBasket}>Add to Basket</button>
-          </li>
+          <Card key={index} className="movie-card">
+            <CardContent>
+              <Typography variant="h5" component="h2">
+                {movie.title}
+              </Typography>
+            </CardContent>
+            <CardActions>
+              <Button
+                startIcon={movie.liked ? <Favorite /> : <FavoriteBorder />}
+                onClick={() => handleLikeMovie(movie.title)}
+                className="like-button"
+              >
+                {movie.liked ? "Liked" : "Not Liked"}
+              </Button>
+              <Button
+                startIcon={
+                  movie.inBasket ? <RemoveShoppingCart /> : <AddShoppingCart />
+                }
+                onClick={() => {
+                  if (movie.inBasket) {
+                    handleRemoveFromBasket(movie.title);
+                  } else {
+                    handleAddToBasket(movie.title);
+                  }
+                }}
+                className="basket-button"
+              >
+                {movie.inBasket ? "Remove from basket" : "Add to basket"}
+              </Button>
+            </CardActions>
+          </Card>
         ))}
-      </ul>
-      <h2>My Basket {basket.length}</h2>
-      <ul>
+      </div>
+      <h2 className="subtitle">My Basket ({basket.length})</h2>
+      <ul className="basket">
         {basket.map((movie, index) => (
           <li key={index}>{movie}</li>
         ))}
       </ul>
-      <h2>Liked Movies {likedMovies.length}</h2>
-      <ul>
+      <h2 className="subtitle">Liked Movies ({likedMovies.length})</h2>
+      <ul className="liked-movies">
         {likedMovies.map((movie, index) => (
           <li key={index}>{movie}</li>
         ))}
       </ul>
-    </>
+    </div>
   );
 }
+
+export default Home;
