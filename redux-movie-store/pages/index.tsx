@@ -1,3 +1,4 @@
+import { addMovie, addToBasket, addToLikedMovies } from "@/store";
 import {
   Button,
   Card,
@@ -15,39 +16,35 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Dispatch } from "redux";
 
+interface RootState {
+  movies: { title: string; liked: boolean; inBasket: boolean }[];
+  basket: string[];
+  likedMovies: string[];
+}
+
 function Home() {
   const [movieTitle, setMovieTitle] = useState("");
-  const movies = useSelector(
-    (state: {
-      movies: { title: string; liked: boolean; inBasket: boolean }[];
-    }) => state.movies
-  );
-  const basket = useSelector((state: { basket: string[] }) => state.basket);
-  const likedMovies = useSelector(
-    (state: { likedMovies: string[] }) => state.likedMovies
-  );
+  const movies = useSelector((state: RootState) => state.movies);
+  const basket = useSelector((state: RootState) => state.basket);
+  const likedMovies = useSelector((state: RootState) => state.likedMovies);
   const dispatch: Dispatch<any> = useDispatch();
 
   function handleAddMovie() {
     const newMovie = {
-      title: movieTitle
-        .toLowerCase()
-        .split(" ")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" "),
+      title: movieTitle,
       inBasket: false,
       liked: false,
     };
-    dispatch({ type: "ADD_MOVIE", payload: newMovie });
+    dispatch(addMovie(newMovie));
     setMovieTitle("");
   }
 
   function handleLikeMovie(movieTitle: string) {
-    dispatch({ type: "LIKE_MOVIE", payload: movieTitle });
+    dispatch(addToLikedMovies(movieTitle));
   }
 
   function handleAddToBasket(movieTitle: string) {
-    dispatch({ type: "ADD_TO_BASKET", payload: movieTitle });
+    dispatch(addToBasket(movieTitle));
   }
 
   function handleRemoveFromBasket(movieTitle: string) {
